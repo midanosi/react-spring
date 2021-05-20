@@ -116,6 +116,8 @@ export function useTransition(
   // keys (which are assigned to each item by index).
   const keys = getKeys(items, propsFn ? propsFn() : props, prevTransitions)
 
+  console.log(keys)
+
   // Expired transitions that need clean up.
   const expired = (reset && usedTransitions.current) || []
   useLayoutEffect(() =>
@@ -184,6 +186,7 @@ export function useTransition(
   // Generate changes to apply in useEffect.
   const changes = new Map<TransitionState, Change>()
   each(transitions, (t, i) => {
+    console.log('creating payload for', t.item)
     const key = t.key
     const prevPhase = t.phase
 
@@ -323,7 +326,10 @@ export function useTransition(
     () => {
       each(changes, ({ phase, payload }, t) => {
         const { ctrl } = t
+        // update the phase after the first mount
         t.phase = phase
+
+        console.log('animating')
 
         // Attach the controller to our local ref.
         ref?.add(ctrl)
@@ -350,23 +356,26 @@ export function useTransition(
     reset ? void 0 : deps
   )
 
-  const renderTransitions: TransitionFn = render => (
-    <>
-      {transitions.map((t, i) => {
-        const { springs } = changes.get(t) || t.ctrl
-        const elem: any = render({ ...springs }, t.item, t, i)
-        return elem && elem.type ? (
-          <elem.type
-            {...elem.props}
-            key={is.str(t.key) || is.num(t.key) ? t.key : t.ctrl.id}
-            ref={elem.ref}
-          />
-        ) : (
-          elem
-        )
-      })}
-    </>
-  )
+  const renderTransitions: TransitionFn = render => {
+    console.log('calling transition render')
+    return (
+      <>
+        {transitions.map((t, i) => {
+          const { springs } = changes.get(t) || t.ctrl
+          const elem: any = render({ ...springs }, t.item, t, i)
+          return elem && elem.type ? (
+            <elem.type
+              {...elem.props}
+              key={is.str(t.key) || is.num(t.key) ? t.key : t.ctrl.id}
+              ref={elem.ref}
+            />
+          ) : (
+            elem
+          )
+        })}
+      </>
+    )
+  }
 
   return ref ? [renderTransitions, ref] : renderTransitions
 }

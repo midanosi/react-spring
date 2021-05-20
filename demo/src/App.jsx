@@ -1,6 +1,7 @@
 import React from 'react'
 import { Link, Route } from 'wouter'
 import styles from './styles.module.css'
+import { a, useTransition } from '@react-spring/web'
 
 import GooBlobs from './sandboxes/goo-blobs/src/App'
 import Card from './sandboxes/card/src/App'
@@ -65,24 +66,74 @@ const Example = ({ link }) => {
   )
 }
 
+// export default function App() {
+//   return (
+//     <>
+//       <Route path="/">
+//         <div className={styles.page}>
+//           <h1>React Spring demos</h1>
+//           <h2>Sandboxes</h2>
+//           <div className={styles.linkList}>
+//             {Object.keys(links).map(link => (
+//               <Link key={link} href={`/${link}`}>
+//                 {/*eslint-disable-next-line jsx-a11y/anchor-is-valid */}
+//                 <a className={styles.link}>{link}</a>
+//               </Link>
+//             ))}
+//           </div>
+//         </div>
+//       </Route>
+//       <Route path="/:link">{params => <Example link={params.link} />}</Route>
+//     </>
+//   )
+// }
+
 export default function App() {
+  const [items, setItems] = React.useState([0])
+
+  const transition = useTransition(items, {
+    from: { opacity: 0.5 },
+    enter: { opacity: 1 },
+    leave: { opacity: 0.5 },
+    config: {
+      duration: 1000,
+    },
+  })
+
   return (
-    <>
-      <Route path="/">
-        <div className={styles.page}>
-          <h1>React Spring demos</h1>
-          <h2>Sandboxes</h2>
-          <div className={styles.linkList}>
-            {Object.keys(links).map(link => (
-              <Link key={link} href={`/${link}`}>
-                {/*eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-                <a className={styles.link}>{link}</a>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </Route>
-      <Route path="/:link">{params => <Example link={params.link} />}</Route>
-    </>
+    <div className="App">
+      <h1>Hello CodeSandbox</h1>
+      <h2>Start editing to see some magic happen!</h2>
+      {transition((style, item, t) => {
+        let lastPhase
+        return (
+          <a.div
+            style={{
+              opacity: style.opacity.to(o => {
+                if (lastPhase !== t.phase) {
+                  console.log('to', {
+                    item,
+                    phase: t.phase,
+                    opacity: o,
+                    goal: style.opacity.goal,
+                  })
+                  lastPhase = t.phase
+                }
+                return o
+              }),
+            }}>
+            {item} is at phase {t.phase}
+          </a.div>
+        )
+      })}
+      <div>
+        <button onClick={() => setItems([...items, items.length])}>
+          Push item
+        </button>
+      </div>
+      <div>
+        <button onClick={() => setItems(items.slice(0, -1))}>Pop item</button>
+      </div>
+    </div>
   )
 }
